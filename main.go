@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/jessevdk/go-flags"
@@ -14,13 +13,15 @@ var (
 )
 
 type arguments struct {
-	Path          string `short:"p" long:"path" required:"true" description:"latex source directory to compile"`
-	ContainerName string `short:"n" long:"container-name" description:"docker container name"`
+	Path          string `short:"p" long:"path" required:"true" description:"Latex source path to compile (execute latexmk)"`
+	ContainerName string `short:"n" long:"container-name" description:"Docker container name"`
+	WatchExp      string `short:"w" long:"watch" description:"Process any events whose filename matches the specified POSIX extended regular expression"`
+	Recursive     bool   `short:"r" long:"recursive" description:"Watch all subdirectories of the --path directory"`
 }
 
-func startDocker(args *arguments) (string, error) {
+func buildCommand(args *arguments) *exec.Cmd {
 	// build commands
-	cmds := []string{"docker", "run"}
+	cmds := []string{"docker", "run", "--rm"}
 
 	// volume option
 	volume := fmt.Sprintf("%s:/home/work", args.Path)
@@ -41,27 +42,32 @@ func startDocker(args *arguments) (string, error) {
 	cmds = append(cmds, "--command")
 	cmds = append(cmds, "latexmk")
 
+	if args.WatchExp != "" {
+		cmds = append(cmds, "--watch")
+		cmds = append(cmds, args.WatchExp)
+	}
+
+	if args.Recursive {
+		cmds = append(cmds, "--recursive")
+	}
+
 	// build command
 	cmd := exec.Command(cmds[0], cmds[1:]...)
-	stderr := &bytes.Buffer{}
-	cmd.Stderr = stderr
-	out, err := cmd.Output()
-	if err != nil {
-		return string(out), errors.New(stderr.String())
-	}
-	return string(out), nil
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd
 }
 
 func main() {
 	var args arguments
 	if _, err := flags.Parse(&args); err != nil {
-		return
-	}
-
-	out, err := startDocker(&args)
-	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(out)
+
+	cmd := buildCommand(&args)
+	cmd.Start()
+
+	cmd.Wait()
 }

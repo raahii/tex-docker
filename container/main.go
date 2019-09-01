@@ -21,7 +21,7 @@ type arguments struct {
 
 func errorMessage(texts ...string) string {
 	var r, g, b uint8
-	r, g, b = 252, 255, 43
+	r, g, b = 199, 37, 78
 
 	coloredTexts := make([]string, len(texts))
 	for i, v := range texts {
@@ -92,53 +92,55 @@ func main() {
 		return
 	}
 
-	r := regexp.MustCompile(args.WatchExp)
 	// watch specified filesand compile every time the files changes
-	for {
-		w := watcher.New()
-		w.SetMaxEvents(1)
+	w := watcher.New()
+	w.SetMaxEvents(1)
 
-		w.AddFilterHook(watcher.RegexFilterHook(r, false))
+	r := regexp.MustCompile(args.WatchExp)
+	w.AddFilterHook(watcher.RegexFilterHook(r, false))
 
-		go func() {
-			for {
-				select {
-				case event := <-w.Event:
-					fmt.Println(infoMessage("[event]", event.String()))
-					executeCommand(command)
-					w.Close()
-				case err := <-w.Error:
-					fmt.Println(errorMessage(err.Error()))
-				case <-w.Closed:
-					return
-				}
-			}
-		}()
-
-		// watch current directory
-		if args.Recursive {
-			fmt.Println("adding under current directory recursively, this may takes a while...")
-			if err := w.AddRecursive("."); err != nil {
+	go func() {
+		for {
+			select {
+			case event := <-w.Event:
+				fmt.Println(infoMessage("[event]", event.String()))
+				executeCommand(command)
+				fmt.Println(infoMessage("Waiting file changes..."))
+			case err := <-w.Error:
 				fmt.Println(errorMessage(err.Error()))
-			}
-		} else {
-			if err := w.Add("."); err != nil {
-				fmt.Println(errorMessage(err.Error()))
+			case <-w.Closed:
+				return
 			}
 		}
+	}()
 
-		// print a list of all of the files and folders currently
-		// being watched and their paths.
-		s := fmt.Sprintf("'%s'", args.WatchExp)
-		fmt.Println(warnMessage("watch only files that match", s))
-		for path, _ := range w.WatchedFiles() {
-			s := fmt.Sprintf("  - %s", path)
-			fmt.Println(warnMessage(s))
-		}
+	// watch current directory
+	if args.Recursive {
+		fmt.Println(infoMessage("adding subdirectories of the path, this may takes a while..."))
 		fmt.Println()
-
-		if err := w.Start(time.Millisecond * 500); err != nil {
+		if err := w.AddRecursive("."); err != nil {
 			fmt.Println(errorMessage(err.Error()))
 		}
+	} else {
+		if err := w.Add("."); err != nil {
+			fmt.Println(errorMessage(err.Error()))
+		}
+	}
+
+	// print a list of all of the files and folders currently
+	// being watched and their paths.
+	s := fmt.Sprintf("'%s'", args.WatchExp)
+	fmt.Println(warnMessage("watch only files that match", s))
+	if len(w.WatchedFiles()) == 0 {
+		fmt.Println(errorMessage("No files to watch !!"))
+	}
+	for path, _ := range w.WatchedFiles() {
+		s := fmt.Sprintf("  - %s", path)
+		fmt.Println(warnMessage(s))
+	}
+	fmt.Println()
+
+	if err := w.Start(time.Millisecond * 500); err != nil {
+		fmt.Println(errorMessage(err.Error()))
 	}
 }

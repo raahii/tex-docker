@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	dockerImage = "tex-docker"
+	dockerImage = "raahii/tex-docker:latest"
 )
 
 type arguments struct {
@@ -62,7 +62,6 @@ func buildCommand(args *arguments) *exec.Cmd {
 func main() {
 	var args arguments
 	if _, err := flags.Parse(&args); err != nil {
-		fmt.Println(err)
 		return
 	}
 

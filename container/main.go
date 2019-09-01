@@ -80,7 +80,6 @@ func executeCommand(command []string) {
 func main() {
 	var args arguments
 	if _, err := flags.Parse(&args); err != nil {
-		fmt.Println(errorMessage(err.Error()))
 		return
 	}
 

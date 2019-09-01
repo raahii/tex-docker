@@ -1,5 +1,4 @@
-tex-docker
---
+# tex-docker
 
 This is a CLI tool which enables compile TeX document without tex-live installation by using docker.
 
@@ -7,7 +6,7 @@ Currently supporting executing `latexmk` on your tex document directory. In addi
 
 ### Installation
 
-```
+```shell
 go get -u github.com/raahii/tex-docker
 ```
 

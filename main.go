@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dockerImage string = "tex-on-docker"
+	dockerImage string = "tex-docker"
 )
 
 type arguments struct {

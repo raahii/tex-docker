@@ -98,6 +98,7 @@ func main() {
 	r := regexp.MustCompile(args.WatchExp)
 	w.AddFilterHook(watcher.RegexFilterHook(r, false))
 
+	fmt.Println(infoMessage("Waiting file changes..."))
 	go func() {
 		for {
 			select {

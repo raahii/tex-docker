@@ -67,6 +67,5 @@ func main() {
 
 	cmd := buildCommand(&args)
 	cmd.Start()
-
 	cmd.Wait()
 }

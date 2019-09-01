@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 
@@ -18,10 +19,13 @@ func main() {
 		return
 	}
 
-	command := args.BuildCommand
-	err := exec.Command(command).Run()
+	cmd := exec.Command(args.BuildCommand)
+	stderr := &bytes.Buffer{}
+	cmd.Stderr = stderr
+	out, err := cmd.Output()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(stderr.String())
 		return
 	}
+	fmt.Println(string(out))
 }

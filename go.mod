@@ -1,4 +1,4 @@
-module github.com/raahii/tex-on-docker
+module github.com/raahii/tex-docker
 
 go 1.12
 

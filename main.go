@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dockerImage string = "tex-docker"
+	dockerImage = "tex-docker"
 )
 
 type arguments struct {
@@ -20,7 +20,7 @@ type arguments struct {
 
 func startDocker(args *arguments) (string, error) {
 	// build commands
-	cmds := []string{"docker", "run", "-d"}
+	cmds := []string{"docker", "run"}
 
 	// volume option
 	volume := fmt.Sprintf("%s:/home/work", args.Path)
@@ -35,6 +35,11 @@ func startDocker(args *arguments) (string, error) {
 
 	// docker image name
 	cmds = append(cmds, dockerImage)
+
+	// command in docker container
+	cmds = append(cmds, "tex-docker")
+	cmds = append(cmds, "--command")
+	cmds = append(cmds, "latexmk")
 
 	// build command
 	cmd := exec.Command(cmds[0], cmds[1:]...)
